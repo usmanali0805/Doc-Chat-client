@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
+@import "tailwindcss";
+
+
+:root {
+  --ink: #171a23;
+  --ink-soft: #4a4e5c;
+  --paper: #f2f4f7;
+  --paper-raised: #ffffff;
+  --line: #dde1e8;
+  --brand: #3346ff;
+  --brand-dark: #212fcc;
+  --highlight: #ffce45;
+  --highlight-soft: #fff3cc;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+}
+
+.font-display {
+  font-family: 'Fraunces', serif;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.mark {
+  background: linear-gradient(180deg, transparent 62%, var(--highlight) 62%);
+  padding: 0 2px;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: #fff;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.btn-primary:hover {
+  background: var(--brand);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.btn-secondary:hover {
+  background: var(--ink);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.citation-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  background: #edebff;
+  color: var(--brand-dark);
+  border-radius: 6px;
+  padding: 2px 7px;
+}
+
+.nav-link {
+  color: var(--ink-soft);
+  transition: color 0.15s ease;
+}
+.nav-link:hover {
+  color: var(--ink);
+}
+
+.float-doc {
+  animation: float 5s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+.plus-icon {
+  transition: transform 0.2s ease;
+}
+details[open] .plus-icon {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-doc { animation: none; }
+}
