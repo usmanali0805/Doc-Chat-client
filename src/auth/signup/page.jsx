@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AuthLayout from "../../components/AuthLayout";
+import AuthLayout from "../../components/landingpage/AuthLayout";
 
 export default function SignupPage() {
   const [name, setName] = useState("");

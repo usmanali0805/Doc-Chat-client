@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const freeFeatures = [
   "5 documents",
   "50 questions / month",
@@ -39,9 +41,9 @@ export default function Pricing() {
               </li>
             ))}
           </ul>
-          <a href="#" className="btn-secondary block text-center text-sm font-medium px-6 py-3 rounded-full">
+          <Link to="chat" className="btn-secondary block text-center text-sm font-medium px-6 py-3 rounded-full">
             Get started
-          </a>
+          </Link>
         </div>
 
         <div className="card p-8 relative" style={{ borderColor: "var(--ink)", borderWidth: "2px" }}>
