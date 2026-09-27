@@ -17,7 +17,7 @@ export default function LoginPage() {
 
     try {
       // Replace with your actual auth endpoint — expects a JWT back on success
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -32,7 +32,7 @@ export default function LoginPage() {
       // Store the JWT however your app expects (httpOnly cookie set by the server is
       // safer than localStorage — adjust this once your backend is wired up)
       localStorage.setItem("token", data.token);
-      window.location.href = "/dashboard";
+      window.location.href = "/chat";
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {

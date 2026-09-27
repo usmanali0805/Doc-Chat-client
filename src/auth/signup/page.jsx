@@ -28,7 +28,7 @@ export default function SignupPage() {
     setLoading(true);
     try {
       // Replace with your actual auth endpoint — expects a JWT back on success
-      const res = await fetch("/api/auth/signup", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
@@ -41,7 +41,7 @@ export default function SignupPage() {
 
       const data = await res.json();
       localStorage.setItem("token", data.token);
-      window.location.href = "/dashboard";
+      window.location.href = "/login";
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {

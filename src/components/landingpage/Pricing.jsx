@@ -41,7 +41,7 @@ export default function Pricing() {
               </li>
             ))}
           </ul>
-          <Link to="chat" className="btn-secondary block text-center text-sm font-medium px-6 py-3 rounded-full">
+          <Link to="login" className="btn-secondary block text-center text-sm font-medium px-6 py-3 rounded-full">
             Get started
           </Link>
         </div>
@@ -67,6 +67,6 @@ export default function Pricing() {
           </a>
         </div>
       </div>
-    </section>
+    </section> 
   );
 }
