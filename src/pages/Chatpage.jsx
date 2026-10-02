@@ -1,100 +1,31 @@
-// import { useState } from 'react';
-// import Sidebar from '../components/chat/sidebar';
-// import ChatNavbar from '../components/chat/chatnav';
-// import ChatWindow from '../components/chat/chatwindow';
-
-// const documentDetails = {
-//   1: { id: 1, name: 'OS_Notes.pdf', pages: 18, chunks: 42 },
-//   2: { id: 2, name: 'SPM_Ch4.pdf', pages: 24, chunks: 51 },
-//   3: { id: 3, name: 'Thesis_draft.pdf', pages: 60, chunks: 0 },
-// };
-
-// export default function ChatPage() {
-//   const [activeDocumentId, setActiveDocumentId] = useState(1);
-//   const [messages, setMessages] = useState([]);
-//   const [isTyping, setIsTyping] = useState(false);
-
-//   const activeDocument = documentDetails[activeDocumentId];
-//   const user = { name: 'Muhammad Usman', plan: 'Free plan' };
-
-//   function handleNewChat() {
-//     setMessages([]);
-//   }
-
-//   function handleSelectDocument(id) {
-//     setActiveDocumentId(id);
-//     setMessages([]);
-//   }
-
-//   async function handleSend(text) {
-//     const userMessage = { id: Date.now(), role: 'user', text };
-//     setMessages((prev) => [...prev, userMessage]);
-//     setIsTyping(true);
-
-//     try {
-//       // Replace with your actual RAG query endpoint
-//       const res = await fetch('/api/chat', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ documentId: activeDocumentId, question: text }),
-//       });
-//       const data = await res.json();
-
-//       setMessages((prev) => [
-//         ...prev,
-//         { id: Date.now() + 1, role: 'assistant', text: data.answer, sources: data.sources || [] },
-//       ]);
-//     } catch (err) {
-//       setMessages((prev) => [
-//         ...prev,
-//         {
-//           id: Date.now() + 1,
-//           role: 'assistant',
-//           text: "Sorry, I couldn't reach the server. Please try again.",
-//           sources: [],
-//         },
-//       ]);
-//     } finally {
-//       setIsTyping(false);
-//     }
-//   }
-
-
-//   return (
-//     <div className="flex h-screen bg-[var(--paper)]">
-//       <Sidebar
-//         activeDocumentId={activeDocumentId}
-//         onSelectDocument={handleSelectDocument}
-//         onNewChat={handleNewChat}
-//         user={user}
-//       />
-//       <div className="flex-1 flex flex-col min-w-0">
-//         <ChatNavbar activeDocument={activeDocument} />
-//         <ChatWindow messages={messages} onSend={handleSend} isTyping={isTyping} />
-//       </div>
-//     </div>
-//   );
-// }
-
-import { useState, useRef } from 'react';
-import Sidebar from '../components/chat/sidebar';
-import ChatNavbar from '../components/chat/chatnav';
-import ChatWindow from '../components/chat/chatwindow';
-
-const documentDetails = {
-  1: { id: 1, name: 'OS_Notes.pdf', pages: 18, chunks: 42 },
-  2: { id: 2, name: 'SPM_Ch4.pdf', pages: 24, chunks: 51 },
-  3: { id: 3, name: 'Thesis_draft.pdf', pages: 60, chunks: 0 },
-};
+import { useState, useRef, useEffect } from "react";
+import Sidebar from "../components/chat/sidebar";
+import ChatNavbar from "../components/chat/chatnav";
+import ChatWindow from "../components/chat/chatwindow";
 
 export default function ChatPage() {
-  const [activeDocumentId, setActiveDocumentId] = useState(1);
+  const [activeDocumentId, setActiveDocumentId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [user, setUser] = useState(null);
+  const [document, setDocument] = useState({});
 
-  // Visual state anchors
-  const activeDocument = documentDetails[activeDocumentId];
-  const user = { name: 'Muhammad Usman', plan: 'Free plan' };
+  const activeDocument = document[activeDocumentId] || null;
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}auth/me`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        const data = await res.json();
+        if (res.ok) setUser(data.user);
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+      }
+    }
+    fetchUser();
+  }, []);
 
   // Ref tracker to prevent chat mixing across documents if user clicks fast
   const currentDocRef = useRef(activeDocumentId);
@@ -109,29 +40,53 @@ export default function ChatPage() {
     setMessages([]);
   }
 
+  async function handleDocumentUploaded(data) {
+    console.log('is mein ayaaaa.....')
+    console.log(data.documentId)
+    const newDoc = {
+      id: data.documentId,
+      name: data.filename,
+      pages: data.totalpages || 0,
+      chunks: data.totalChunkes || 0,
+    };
+    setDocument((prev) => ({ ...prev, [newDoc.id]: newDoc }));
+    currentDocRef.current = newDoc.id;
+    setActiveDocumentId(newDoc.id);
+    setMessages([]);
+  }
+
   async function handleSend(text) {
     if (!text.trim()) return; // Prevent sending blank messages
-
+    // if (!activeDocumentId) {
+    //   alert("Pehle koi PDF upload karo");
+    //   return;
+    // }
     // Capture the exact document ID targeted at the moment of dispatch
     const targetDocId = activeDocumentId;
-
-    const userMessage = { 
-      id: crypto.randomUUID ? crypto.randomUUID() : `user-${Date.now()}`, 
-      role: 'user', 
-      text 
+    const Token = localStorage.getItem("token");
+    const userMessage = {
+      id: crypto.randomUUID ? crypto.randomUUID() : `user-${Date.now()}`,
+      role: "user",
+      text,
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setIsTyping(true);
 
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentId: targetDocId, question: text }),
-      });
-      
-      if (!res.ok) throw new Error('Server error response');
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}chat/${targetDocId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Token}`,
+          },
+          body: JSON.stringify({ documentId: targetDocId, question: text }),
+        },
+      );
+
+      if (!res.ok) throw new Error("Server error response");
       const data = await res.json();
 
       // DISCARD incoming data if user switched documents while waiting
@@ -139,11 +94,11 @@ export default function ChatPage() {
 
       setMessages((prev) => [
         ...prev,
-        { 
-          id: crypto.randomUUID ? crypto.randomUUID() : `bot-${Date.now()}`, 
-          role: 'assistant', 
-          text: data.answer, 
-          sources: data.sources || [] 
+        {
+          id: crypto.randomUUID ? crypto.randomUUID() : `bot-${Date.now()}`,
+          role: "assistant",
+          text: data.answer,
+          sources: data.sources || [],
         },
       ]);
     } catch (err) {
@@ -153,7 +108,7 @@ export default function ChatPage() {
         ...prev,
         {
           id: crypto.randomUUID ? crypto.randomUUID() : `err-${Date.now()}`,
-          role: 'assistant',
+          role: "assistant",
           text: "Sorry, I couldn't reach the server. Please try again.",
           sources: [],
         },
@@ -168,7 +123,8 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen bg-[var(--paper)]">
-      <Sidebar
+      <Sidebar  
+      documents={document}
         activeDocumentId={activeDocumentId}
         onSelectDocument={handleSelectDocument}
         onNewChat={handleNewChat}
@@ -176,7 +132,13 @@ export default function ChatPage() {
       />
       <div className="flex-1 flex flex-col min-w-0">
         <ChatNavbar activeDocument={activeDocument} />
-        <ChatWindow messages={messages} onSend={handleSend} isTyping={isTyping} />
+        <ChatWindow
+          messages={messages}
+          onSend={handleSend}
+          isTyping={isTyping}  
+          onDocumentUploaded={handleDocumentUploaded}
+
+        />
       </div>
     </div>
   );

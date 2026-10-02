@@ -70,7 +70,7 @@ export default function Sidebar({ activeDocumentId, onSelectDocument, onNewChat,
           )}
 
           {filteredDocs.map((doc) => {
-            const active = doc.id === activeDocumentId;
+            const active = doc?.id === activeDocumentId;
             return (
               <button
                 key={doc.id}
