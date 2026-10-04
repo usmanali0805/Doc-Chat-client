@@ -41,8 +41,6 @@ export default function ChatPage() {
   }
 
   async function handleDocumentUploaded(data) {
-    console.log('is mein ayaaaa.....')
-    console.log(data.documentId)
     const newDoc = {
       id: data.documentId,
       name: data.filename,

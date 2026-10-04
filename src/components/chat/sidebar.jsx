@@ -1,23 +1,54 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
-const documents = [
-  { id: 1, name: 'OS_Notes.pdf', status: 'ready' },
-  { id: 2, name: 'SPM_Ch4.pdf', status: 'ready' },
-  { id: 3, name: 'Thesis_draft.pdf', status: 'processing' },
-];
+export default function Sidebar({
+  activeDocumentId,
+  onSelectDocument,
+  onNewChat,
+  user,
+}) {
+  const [query, setQuery] = useState("");
+  const [documents, setDocuments] = useState([]);
 
-export default function Sidebar({ activeDocumentId, onSelectDocument, onNewChat, user }) {
-  const [query, setQuery] = useState('');
+  useEffect(() => {
+    async function fetchDocuments() {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${import.meta.env.VITE_API_URL}documents`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
 
-  const filteredDocs = documents.filter((doc) =>
-    doc.name.toLowerCase().includes(query.toLowerCase())
-  );
+        const formatted = (data.data || []).map((doc) => ({
+          id: doc.documentId,
+          name: doc.filename,
+          pages: doc.totalpages,
+          status: doc.status,
+        }));
+        setDocuments(formatted);
+      } catch (err) {
+        console.error("Failed to fetch documents:", err);
+      }
+    }
+
+    fetchDocuments();
+  }, []);
+
+  const filteredDocs =
+    documents &&
+    documents.filter((doc) =>
+      doc.name.toLowerCase().includes(query.toLowerCase()),
+    );
 
   return (
     <aside className="w-64 h-screen shrink-0 bg-[var(--paper)] border-r border-[var(--line)] flex flex-col">
       <div className="p-4">
-        <Link to="/" className="font-display text-lg font-medium tracking-tight">
+        <Link
+          to="/"
+          className="font-display text-lg font-medium tracking-tight"
+        >
           DocChat
         </Link>
       </div>
@@ -28,7 +59,14 @@ export default function Sidebar({ activeDocumentId, onSelectDocument, onNewChat,
           onClick={onNewChat}
           className="btn-primary w-full flex items-center justify-center gap-2 text-sm font-medium py-2.5 rounded-lg"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M12 5v14M5 12h14" />
           </svg>
           New chat
@@ -66,7 +104,9 @@ export default function Sidebar({ activeDocumentId, onSelectDocument, onNewChat,
 
         <div className="flex flex-col gap-1 pb-4">
           {filteredDocs.length === 0 && (
-            <p className="text-xs text-[var(--ink-soft)] px-1 py-2">No documents found.</p>
+            <p className="text-xs text-[var(--ink-soft)] px-1 py-2">
+              No documents found.
+            </p>
           )}
 
           {filteredDocs.map((doc) => {
@@ -77,10 +117,10 @@ export default function Sidebar({ activeDocumentId, onSelectDocument, onNewChat,
                 type="button"
                 onClick={() => onSelectDocument(doc.id)}
                 className={
-                  'flex items-center gap-2 text-left px-2.5 py-2 rounded-lg text-sm transition ' +
+                  "flex items-center gap-2 text-left px-2.5 py-2 rounded-lg text-sm transition " +
                   (active
-                    ? 'bg-[var(--highlight-soft)] text-[var(--brand-dark)]'
-                    : 'hover:bg-[var(--paper-raised)] text-[var(--ink)]')
+                    ? "bg-[var(--highlight-soft)] text-[var(--brand-dark)]"
+                    : "hover:bg-[var(--paper-raised)] text-[var(--ink)]")
                 }
               >
                 <svg
@@ -96,7 +136,7 @@ export default function Sidebar({ activeDocumentId, onSelectDocument, onNewChat,
                   <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
                 </svg>
                 <span className="truncate flex-1">{doc.name}</span>
-                {doc.status === 'processing' && (
+                {doc.status === "processing" && (
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                 )}
               </button>
@@ -107,11 +147,13 @@ export default function Sidebar({ activeDocumentId, onSelectDocument, onNewChat,
 
       <div className="p-4 border-t border-[var(--line)] flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-full bg-[var(--brand)] text-white flex items-center justify-center text-xs font-medium shrink-0">
-          {(user?.name || 'U').charAt(0).toUpperCase()}
+          {(user?.name || "U").charAt(0).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium truncate">{user?.name || 'User'}</p>
-          <p className="text-xs text-[var(--ink-soft)] truncate">{user?.plan || 'Free plan'}</p>
+          <p className="text-sm font-medium truncate">{user?.name || "User"}</p>
+          <p className="text-xs text-[var(--ink-soft)] truncate">
+            {user?.plan || "Free plan"}
+          </p>
         </div>
         <button
           type="button"
