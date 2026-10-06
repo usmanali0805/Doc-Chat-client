@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { apiFetch } from "../../utils/apiFetch";
 
 export default function ChatWindow({
   messages,
@@ -51,14 +52,19 @@ export default function ChatWindow({
     setUploadError("");
 
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}documents/upload`,
-        {
+      const res = await apiFetch('documents/upload', {
           method: "POST",
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
           body: formData,
-        },
-      );
+        })
+      // const res = await fetch(
+      //   `${import.meta.env.VITE_API_URL}documents/upload`,
+      //   {
+      //     method: "POST",
+      //     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      //     body: formData,
+      //   },
+      // );
 
       const data = await res.json();
       if (!res.ok)

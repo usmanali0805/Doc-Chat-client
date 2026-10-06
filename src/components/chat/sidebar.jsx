@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { apiFetch } from "../../utils/apiFetch";
 
 export default function Sidebar({
   activeDocumentId,
@@ -13,12 +14,18 @@ export default function Sidebar({
   useEffect(() => {
     async function fetchDocuments() {
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${import.meta.env.VITE_API_URL}documents`, {
+        const res = await apiFetch('documents',{
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        });
+        }) 
+        const token = localStorage.getItem("token");
+        // const res = await fetch(`${import.meta.env.VITE_API_URL}documents`, 
+        //   {
+        //   headers: {
+        //     Authorization: `Bearer ${token}`,
+        //   },
+        // });
         const data = await res.json();
 
         const formatted = (data.data || []).map((doc) => ({

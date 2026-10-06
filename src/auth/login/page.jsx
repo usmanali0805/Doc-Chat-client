@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import AuthLayout from "../../components/landingpage/AuthLayout";
+import { apiFetch } from "../../utils/apiFetch";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -16,12 +17,12 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Replace with your actual auth endpoint — expects a JWT back on success
-      const res = await fetch(`${import.meta.env.VITE_API_URL}auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await apiFetch('auth/login', {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+
+      })
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -29,8 +30,6 @@ export default function LoginPage() {
       }
 
       const data = await res.json();
-      // Store the JWT however your app expects (httpOnly cookie set by the server is
-      // safer than localStorage — adjust this once your backend is wired up)
       localStorage.setItem("token", data.token);
       window.location.href = "/chat";
     } catch (err) {

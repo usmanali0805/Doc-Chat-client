@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import AuthLayout from "../../components/landingpage/AuthLayout";
+import { apiFetch } from "../../utils/apiFetch";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -27,12 +28,12 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      // Replace with your actual auth endpoint — expects a JWT back on success
-      const res = await fetch(`${import.meta.env.VITE_API_URL}auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
+      const res = await apiFetch('auth/signup',{
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password }),
+        
+      })
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

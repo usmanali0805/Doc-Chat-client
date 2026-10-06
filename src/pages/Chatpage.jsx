@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import Sidebar from "../components/chat/sidebar";
 import ChatNavbar from "../components/chat/chatnav";
 import ChatWindow from "../components/chat/chatwindow";
+import { apiFetch } from "../utils/apiFetch";
 
 export default function ChatPage() {
   const [activeDocumentId, setActiveDocumentId] = useState(null);
@@ -72,17 +73,25 @@ export default function ChatPage() {
     setIsTyping(true);
 
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}chat/${targetDocId}`,
-        {
+      const res =await apiFetch(`chat/${targetDocId}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${Token}`,
           },
-          body: JSON.stringify({ documentId: targetDocId, question: text }),
-        },
-      );
+          body: JSON.stringify({ documentId: targetDocId, question: text })
+        })
+      // const res = await fetch(
+      //   `${import.meta.env.VITE_API_URL}chat/${targetDocId}`,
+      //   {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //       Authorization: `Bearer ${Token}`,
+      //     },
+      //     body: JSON.stringify({ documentId: targetDocId, question: text }),
+      //   },
+      // );
 
       if (!res.ok) throw new Error("Server error response");
       const data = await res.json();
