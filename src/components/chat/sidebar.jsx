@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../../utils/apiFetch";
 
@@ -10,22 +10,18 @@ export default function Sidebar({
 }) {
   const [query, setQuery] = useState("");
   const [documents, setDocuments] = useState([]);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     async function fetchDocuments() {
       try {
-        const res = await apiFetch('documents',{
+        const res = await apiFetch("documents", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }) 
+        });
         const token = localStorage.getItem("token");
-        // const res = await fetch(`${import.meta.env.VITE_API_URL}documents`, 
-        //   {
-        //   headers: {
-        //     Authorization: `Bearer ${token}`,
-        //   },
-        // });
+
         const data = await res.json();
 
         const formatted = (data.data || []).map((doc) => ({
@@ -42,6 +38,17 @@ export default function Sidebar({
 
     fetchDocuments();
   }, []);
+  const menuRef = useRef(null);
+
+useEffect(() => {
+  function handleClickOutside(e) {
+    if (menuRef.current && !menuRef.current.contains(e.target)) {
+      setMenuOpen(false);
+    }
+  }
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, []);
 
   const filteredDocs =
     documents &&
@@ -49,6 +56,10 @@ export default function Sidebar({
       doc.name.toLowerCase().includes(query.toLowerCase()),
     );
 
+  function handleLogout() {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  }
   return (
     <aside className="w-64 h-screen shrink-0 bg-[var(--paper)] border-r border-[var(--line)] flex flex-col">
       <div className="p-4">
@@ -162,17 +173,44 @@ export default function Sidebar({
             {user?.plan || "Free plan"}
           </p>
         </div>
-        <button
-          type="button"
-          aria-label="Account menu"
-          className="text-[var(--ink-soft)] hover:text-[var(--ink)]"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="12" cy="5" r="1.5" />
-            <circle cx="12" cy="12" r="1.5" />
-            <circle cx="12" cy="19" r="1.5" />
-          </svg>
-        </button>
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            aria-label="Account menu"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            className="text-[var(--ink-soft)] hover:text-[var(--ink)] cursor-pointer"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="5" r="1.5" />
+              <circle cx="12" cy="12" r="1.5" />
+              <circle cx="12" cy="19" r="1.5" />
+            </svg>
+          </button>
+
+          {menuOpen && (
+            <div className="absolute bottom-8 right-0 w-36 bg-[var(--paper)] border border-[var(--line)] rounded-lg shadow-lg py-1 z-10 ">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-[var(--paper-raised)] flex items-center gap-2 cursor-pointer"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );
