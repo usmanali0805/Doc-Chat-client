@@ -3,8 +3,10 @@ import Sidebar from "../components/chat/sidebar";
 import ChatNavbar from "../components/chat/chatnav";
 import ChatWindow from "../components/chat/chatwindow";
 import { apiFetch } from "../utils/apiFetch";
+import { useNavigate } from "react-router-dom";
 
 export default function ChatPage() {
+  const navigate = useNavigate();
   const [activeDocumentId, setActiveDocumentId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -13,9 +15,15 @@ export default function ChatPage() {
 
   const activeDocument = document[activeDocumentId] || null;
 
+useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
   useEffect(() => {
     async function fetchUser() {
-      
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}auth/me`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -74,14 +82,14 @@ export default function ChatPage() {
     setIsTyping(true);
 
     try {
-      const res =await apiFetch(`chat/${targetDocId}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${Token}`,
-          },
-          body: JSON.stringify({ documentId: targetDocId, question: text })
-        })
+      const res = await apiFetch(`chat/${targetDocId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${Token}`,
+        },
+        body: JSON.stringify({ documentId: targetDocId, question: text }),
+      });
       // const res = await fetch(
       //   `${import.meta.env.VITE_API_URL}chat/${targetDocId}`,
       //   {
@@ -131,8 +139,8 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen bg-[var(--paper)]">
-      <Sidebar  
-      documents={document}
+      <Sidebar
+        documents={document}
         activeDocumentId={activeDocumentId}
         onSelectDocument={handleSelectDocument}
         onNewChat={handleNewChat}
@@ -143,9 +151,8 @@ export default function ChatPage() {
         <ChatWindow
           messages={messages}
           onSend={handleSend}
-          isTyping={isTyping}  
+          isTyping={isTyping}
           onDocumentUploaded={handleDocumentUploaded}
-
         />
       </div>
     </div>
