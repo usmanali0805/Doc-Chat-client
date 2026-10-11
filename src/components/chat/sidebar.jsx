@@ -14,16 +14,15 @@ export default function Sidebar({
 
   useEffect(() => {
     async function fetchDocuments() {
+      const token = localStorage.getItem("token");
       try {
         const res = await apiFetch("documents", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        const token = localStorage.getItem("token");
 
         const data = await res.json();
-
         const formatted = (data.data || []).map((doc) => ({
           id: doc.documentId,
           name: doc.filename,
