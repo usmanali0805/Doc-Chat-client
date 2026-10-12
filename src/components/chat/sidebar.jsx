@@ -7,6 +7,9 @@ export default function Sidebar({
   onSelectDocument,
   onNewChat,
   user,
+  setMessages,
+  setActiveDocumentId,
+  currentDocRef
 }) {
   const [query, setQuery] = useState("");
   const [documents, setDocuments] = useState([]);
@@ -66,12 +69,17 @@ useEffect(() => {
   const confirmed = window.confirm("Yeh document delete karna hai?");
   if (!confirmed) return;
 
-  try {
-    const res = await apiFetch(`documents/${docId}`, {
-      method: "DELETE",
-    });
+  if (docId === activeDocumentId) {
+    currentDocRef.current = null;
+    setActiveDocumentId(null);
+    setMessages([]);
+  }
 
-    if (res.ok) {
+  try {
+    const res = await apiFetch(`documents/${docId}`, {method: "DELETE"});
+    const res2 = await apiFetch(`chat/${docId}`, {method: "DELETE"});
+
+    if (res.ok && res2.ok) {
       setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
     }
   } catch (err) {

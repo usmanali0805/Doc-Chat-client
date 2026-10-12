@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function ChatPage() {
   const navigate = useNavigate();
-  const [activeDocumentId, setActiveDocumentId] = useState(null);
+  const [activeDocumentId, setActiveDocumentId] = useState('');
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [user, setUser] = useState(null);
@@ -15,7 +15,7 @@ export default function ChatPage() {
 
   const activeDocument = document[activeDocumentId] || null;
 
-useEffect(() => {
+  useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login", { replace: true });
@@ -44,11 +44,27 @@ useEffect(() => {
     setMessages([]);
   }
 
-  function handleSelectDocument(id) {
+  async function handleSelectDocument(id) {
+      if (!id) return;
+
     currentDocRef.current = id; // Update track pointer
     setActiveDocumentId(id);
     setMessages([]);
-  }
+    if(activeDocumentId){
+      try {
+        const res = await apiFetch(`chat/${activeDocumentId}/history`, {
+          method: "GET",
+        });
+        if(res.ok){
+          const chat = await res.json()
+          setMessages(chat.messages || [])
+          console.log(chat)
+        }
+      } catch (error) {
+        console.error("Failed to fetch chat:", error);
+      }
+    }
+    }
 
   async function handleDocumentUploaded(data) {
     const newDoc = {
@@ -145,6 +161,9 @@ useEffect(() => {
         onSelectDocument={handleSelectDocument}
         onNewChat={handleNewChat}
         user={user}
+        setMessages = {setMessages}
+        setActiveDocumentId ={setActiveDocumentId}
+        currentDocRef={currentDocRef}
       />
       <div className="flex-1 flex flex-col min-w-0">
         <ChatNavbar activeDocument={activeDocument} />
