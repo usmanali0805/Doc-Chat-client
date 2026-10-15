@@ -1,8 +1,7 @@
-"use client";
-
 import { useState } from "react";
 import AuthLayout from "../../components/landingpage/AuthLayout";
 import { apiFetch } from "../../utils/apiFetch";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -10,6 +9,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -17,12 +17,11 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await apiFetch('auth/login', {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-
-      })
+      const res = await apiFetch("auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -31,7 +30,7 @@ export default function LoginPage() {
 
       const data = await res.json();
       localStorage.setItem("token", data.token);
-      window.location.href = "/chat";
+      navigate("/chat", { replace: true });
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -108,7 +107,10 @@ export default function LoginPage() {
 
       <p className="text-sm text-[var(--ink-soft)] text-center mt-6">
         Don't have an account?{" "}
-        <a href="/signup" className="text-[var(--ink)] font-medium underline underline-offset-2">
+        <a
+          href="/signup"
+          className="text-[var(--ink)] font-medium underline underline-offset-2"
+        >
           Sign up
         </a>
       </p>

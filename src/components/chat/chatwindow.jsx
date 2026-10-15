@@ -39,7 +39,7 @@ export default function ChatWindow({
       e.target.value = "";
       return;
     }
-    if (file.size > 1 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       setUploadError("File 1MB se chhoti honi chahiye");
       e.target.value = "";
       return;
@@ -57,14 +57,6 @@ export default function ChatWindow({
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
           body: formData,
         })
-      // const res = await fetch(
-      //   `${import.meta.env.VITE_API_URL}documents/upload`,
-      //   {
-      //     method: "POST",
-      //     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      //     body: formData,
-      //   },
-      // );
 
       const data = await res.json();
       if (!res.ok)

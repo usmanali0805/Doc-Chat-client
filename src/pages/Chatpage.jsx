@@ -7,11 +7,12 @@ import { useNavigate } from "react-router-dom";
 
 export default function ChatPage() {
   const navigate = useNavigate();
-  const [activeDocumentId, setActiveDocumentId] = useState('');
+  const [activeDocumentId, setActiveDocumentId] = useState("");
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [user, setUser] = useState(null);
   const [document, setDocument] = useState({});
+  const [documents, setDocuments] = useState([]);
 
   const activeDocument = document[activeDocumentId] || null;
 
@@ -22,6 +23,7 @@ export default function ChatPage() {
     }
   }, [navigate]);
 
+  // User fetch
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -37,6 +39,48 @@ export default function ChatPage() {
     fetchUser();
   }, []);
 
+  // fetch Documents
+  useEffect(() => {
+    async function fetchDocuments() {
+      try {
+        const res = await apiFetch("documents");
+        if (!res?.ok) return;
+        const data = await res.json();
+        setDocuments(
+          (data.data || []).map((doc) => ({
+            id: doc.documentId,
+            name: doc.filename,
+            pages: doc.totalpages,
+            status: doc.status,
+          })),
+        );
+      } catch (err) {
+        console.error("Failed to fetch documents:", err);
+      }
+    }
+    fetchDocuments();
+  }, []);
+
+  // Document Delete
+  async function handleDeleteDocument(e ,docId) {
+    if (!window.confirm("Yeh document delete karna hai?")) return;
+
+    try {
+      const res = await apiFetch(`documents/${docId}`, { method: "DELETE" });
+      if (!res?.ok) return;
+
+      setDocuments((prev) => prev.filter((d) => d.id !== docId));
+
+      if (docId === activeDocumentId) {
+        currentDocRef.current = null;
+        setActiveDocumentId(null);
+        setMessages([]);
+      }
+    } catch (err) {
+      console.error("Failed to delete document:", err);
+    }
+  }
+
   // Ref tracker to prevent chat mixing across documents if user clicks fast
   const currentDocRef = useRef(activeDocumentId);
 
@@ -45,26 +89,26 @@ export default function ChatPage() {
   }
 
   async function handleSelectDocument(id) {
-      if (!id) return;
+    if (!id) return;
 
     currentDocRef.current = id; // Update track pointer
     setActiveDocumentId(id);
     setMessages([]);
-    if(activeDocumentId){
+    if (activeDocumentId) {
       try {
         const res = await apiFetch(`chat/${activeDocumentId}/history`, {
           method: "GET",
         });
-        if(res.ok){
-          const chat = await res.json()
-          setMessages(chat.messages || [])
-          console.log(chat)
+        if (res.ok) {
+          const chat = await res.json();
+          setMessages(chat.messages || []);
+          console.log(chat);
         }
       } catch (error) {
         console.error("Failed to fetch chat:", error);
       }
     }
-    }
+  }
 
   async function handleDocumentUploaded(data) {
     const newDoc = {
@@ -73,7 +117,7 @@ export default function ChatPage() {
       pages: data.totalpages || 0,
       chunks: data.totalChunkes || 0,
     };
-    setDocument((prev) => ({ ...prev, [newDoc.id]: newDoc }));
+    setDocuments((prev) => [newDoc, ...prev]);
     currentDocRef.current = newDoc.id;
     setActiveDocumentId(newDoc.id);
     setMessages([]);
@@ -81,11 +125,11 @@ export default function ChatPage() {
 
   async function handleSend(text) {
     if (!text.trim()) return; // Prevent sending blank messages
-    // if (!activeDocumentId) {
-    //   alert("Pehle koi PDF upload karo");
-    //   return;
-    // }
-    // Capture the exact document ID targeted at the moment of dispatch
+
+    if(!activeDocument){
+     return alert('Please upload PDF for chatting')
+    }
+
     const targetDocId = activeDocumentId;
     const Token = localStorage.getItem("token");
     const userMessage = {
@@ -106,17 +150,6 @@ export default function ChatPage() {
         },
         body: JSON.stringify({ documentId: targetDocId, question: text }),
       });
-      // const res = await fetch(
-      //   `${import.meta.env.VITE_API_URL}chat/${targetDocId}`,
-      //   {
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //       Authorization: `Bearer ${Token}`,
-      //     },
-      //     body: JSON.stringify({ documentId: targetDocId, question: text }),
-      //   },
-      // );
 
       if (!res.ok) throw new Error("Server error response");
       const data = await res.json();
@@ -156,14 +189,15 @@ export default function ChatPage() {
   return (
     <div className="flex h-screen bg-[var(--paper)]">
       <Sidebar
-        documents={document}
+        documents={documents}
         activeDocumentId={activeDocumentId}
         onSelectDocument={handleSelectDocument}
         onNewChat={handleNewChat}
         user={user}
-        setMessages = {setMessages}
-        setActiveDocumentId ={setActiveDocumentId}
+        setMessages={setMessages}
+        setActiveDocumentId={setActiveDocumentId}
         currentDocRef={currentDocRef}
+        handleDeleteDocument={handleDeleteDocument}
       />
       <div className="flex-1 flex flex-col min-w-0">
         <ChatNavbar activeDocument={activeDocument} />

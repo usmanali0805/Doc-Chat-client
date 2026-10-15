@@ -1,8 +1,7 @@
-"use client";
-
 import { useState } from "react";
 import AuthLayout from "../../components/landingpage/AuthLayout";
 import { apiFetch } from "../../utils/apiFetch";
+import { useNavigate } from "react-router-dom";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -12,6 +11,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -28,12 +28,11 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const res = await apiFetch('auth/signup',{
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password }),
-        
-      })
+      const res = await apiFetch("auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -42,7 +41,7 @@ export default function SignupPage() {
 
       const data = await res.json();
       localStorage.setItem("token", data.token);
-      window.location.href = "/login";
+      navigate("/login", { replace: true });
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -52,7 +51,9 @@ export default function SignupPage() {
 
   return (
     <AuthLayout>
-      <h1 className="font-display text-2xl font-medium mb-2">Create your account</h1>
+      <h1 className="font-display text-2xl font-medium mb-2">
+        Create your account
+      </h1>
       <p className="text-sm text-[var(--ink-soft)] mb-8">
         Start with 5 free documents — no credit card needed.
       </p>
@@ -89,7 +90,10 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium mb-1.5">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium mb-1.5"
+          >
             Password
           </label>
           <div className="relative">
@@ -114,7 +118,10 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1.5">
+          <label
+            htmlFor="confirmPassword"
+            className="block text-sm font-medium mb-1.5"
+          >
             Confirm password
           </label>
           <input
@@ -144,14 +151,23 @@ export default function SignupPage() {
 
         <p className="text-xs text-[var(--ink-soft)] text-center leading-relaxed">
           By signing up, you agree to our{" "}
-          <a href="/terms" className="underline underline-offset-2">Terms</a> and{" "}
-          <a href="/privacy" className="underline underline-offset-2">Privacy Policy</a>.
+          <a href="/terms" className="underline underline-offset-2">
+            Terms
+          </a>{" "}
+          and{" "}
+          <a href="/privacy" className="underline underline-offset-2">
+            Privacy Policy
+          </a>
+          .
         </p>
       </form>
 
       <p className="text-sm text-[var(--ink-soft)] text-center mt-6">
         Already have an account?{" "}
-        <a href="/login" className="text-[var(--ink)] font-medium underline underline-offset-2">
+        <a
+          href="/login"
+          className="text-[var(--ink)] font-medium underline underline-offset-2"
+        >
           Log in
         </a>
       </p>

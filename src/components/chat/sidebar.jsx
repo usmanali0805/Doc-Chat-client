@@ -1,45 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiFetch } from "../../utils/apiFetch";
+// import { apiFetch } from "../../utils/apiFetch";
 
 export default function Sidebar({
+  documents,
   activeDocumentId,
   onSelectDocument,
   onNewChat,
   user,
-  setMessages,
-  setActiveDocumentId,
-  currentDocRef
+  handleDeleteDocument
 }) {
   const [query, setQuery] = useState("");
-  const [documents, setDocuments] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => {
-    async function fetchDocuments() {
-      const token = localStorage.getItem("token");
-      try {
-        const res = await apiFetch("documents", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-        const formatted = (data.data || []).map((doc) => ({
-          id: doc.documentId,
-          name: doc.filename,
-          pages: doc.totalpages,
-          status: doc.status,
-        }));
-        setDocuments(formatted);
-      } catch (err) {
-        console.error("Failed to fetch documents:", err);
-      }
-    }
-
-    fetchDocuments();
-  }, []);
+ 
   const menuRef = useRef(null);
 
 useEffect(() => {
@@ -53,8 +27,8 @@ useEffect(() => {
 }, []);
 
   const filteredDocs =
-    documents &&
-    documents.filter((doc) =>
+  documents &&
+  documents.filter((doc) =>
       doc.name.toLowerCase().includes(query.toLowerCase()),
     );
 
@@ -63,29 +37,29 @@ useEffect(() => {
     window.location.href = "/login";
   }
 
-  async function handleDeleteDocument(e, docId) {
-  e.stopPropagation(); // taake delete click karne se document select na ho jaye
+//   async function handleDeleteDocument(e, docId) {
+//   e.stopPropagation(); // taake delete click karne se document select na ho jaye
 
-  const confirmed = window.confirm("Yeh document delete karna hai?");
-  if (!confirmed) return;
+//   const confirmed = window.confirm("Yeh document delete karna hai?");
+//   if (!confirmed) return;
 
-  if (docId === activeDocumentId) {
-    currentDocRef.current = null;
-    setActiveDocumentId(null);
-    setMessages([]);
-  }
+//   if (docId === activeDocumentId) {
+//     currentDocRef.current = null;
+//     setActiveDocumentId(null);
+//     setMessages([]);
+//   }
 
-  try {
-    const res = await apiFetch(`documents/${docId}`, {method: "DELETE"});
-    const res2 = await apiFetch(`chat/${docId}`, {method: "DELETE"});
+//   try {
+//     const res = await apiFetch(`documents/${docId}`, {method: "DELETE"});
+//     const res2 = await apiFetch(`chat/${docId}`, {method: "DELETE"});
 
-    if (res.ok && res2.ok) {
-      setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
-    }
-  } catch (err) {
-    console.error("Failed to delete document:", err);
-  }
-}
+//     if (res.ok && res2.ok) {
+//       setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
+//     }
+//   } catch (err) {
+//     console.error("Failed to delete document:", err);
+//   }
+// }npm 
 
   return (
     <aside className="w-64 h-screen shrink-0 bg-[var(--paper)] border-r border-[var(--line)] flex flex-col">
@@ -189,7 +163,7 @@ useEffect(() => {
       <button
         type="button"
         onClick={(e) => handleDeleteDocument(e, doc.id)}
-        className="opacity-0 group-hover:opacity-100 transition shrink-0 text-[var(--ink-soft)] hover:text-red-600"
+        className="opacity-0 group-hover:opacity-100 transition shrink-0 text-[var(--ink-soft)] hover:text-red-600 cursor-pointer"
         aria-label="Delete document"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
