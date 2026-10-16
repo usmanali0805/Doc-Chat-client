@@ -10,12 +10,11 @@ export default function ChatWindow({
   const [input, setInput] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
-  const [uploadedFile, setUploadedFile] = useState(null); // { name, documentId }
+  const [uploadedFile, setUploadedFile] = useState(null); 
   const fileInputRef = useRef(null);
 
 
 
-  // Error khud 3 second baad gayab ho jayega
   useEffect(() => {
     if (!uploadError) return;
     const timer = setTimeout(() => setUploadError(""), 3000);

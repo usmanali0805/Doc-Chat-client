@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-// import { apiFetch } from "../../utils/apiFetch";
 
 export default function Sidebar({
   documents,
@@ -36,30 +35,6 @@ useEffect(() => {
     localStorage.removeItem("token");
     window.location.href = "/login";
   }
-
-//   async function handleDeleteDocument(e, docId) {
-//   e.stopPropagation(); // taake delete click karne se document select na ho jaye
-
-//   const confirmed = window.confirm("Yeh document delete karna hai?");
-//   if (!confirmed) return;
-
-//   if (docId === activeDocumentId) {
-//     currentDocRef.current = null;
-//     setActiveDocumentId(null);
-//     setMessages([]);
-//   }
-
-//   try {
-//     const res = await apiFetch(`documents/${docId}`, {method: "DELETE"});
-//     const res2 = await apiFetch(`chat/${docId}`, {method: "DELETE"});
-
-//     if (res.ok && res2.ok) {
-//       setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
-//     }
-//   } catch (err) {
-//     console.error("Failed to delete document:", err);
-//   }
-// }npm 
 
   return (
     <aside className="w-64 h-screen shrink-0 bg-[var(--paper)] border-r border-[var(--line)] flex flex-col">

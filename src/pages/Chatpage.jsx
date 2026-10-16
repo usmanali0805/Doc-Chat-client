@@ -91,7 +91,7 @@ export default function ChatPage() {
   async function handleSelectDocument(id) {
     if (!id) return;
 
-    currentDocRef.current = id; // Update track pointer
+    currentDocRef.current = id; 
     setActiveDocumentId(id);
     setMessages([]);
     if (activeDocumentId) {
