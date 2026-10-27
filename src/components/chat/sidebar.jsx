@@ -145,6 +145,7 @@ useEffect(() => {
           : "hover:bg-[var(--paper-raised)] text-[var(--ink)]")
       }
       onClick={() => {
+        console.log("click")
         onSelectDocument(doc.id);
         setSidebarOpen(false);
       }}

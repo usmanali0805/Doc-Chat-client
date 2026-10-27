@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, act } from "react";
 import Sidebar from "../components/chat/sidebar";
 import ChatNavbar from "../components/chat/chatnav";
 import ChatWindow from "../components/chat/chatwindow";
@@ -102,7 +102,7 @@ export default function ChatPage() {
         if (res.ok) {
           const chat = await res.json();
           setMessages(chat.messages || []);
-          console.log(chat);
+          console.log(messages);
         }
       } catch (error) {
         console.error("Failed to fetch chat:", error);
@@ -123,68 +123,140 @@ export default function ChatPage() {
     setMessages([]);
   }
 
+  // async function handleSend(text) {
+  //   if (!text.trim()) return; // Prevent sending blank messages
+
+  //   if(!activeDocumentId){
+  //    return alert('Please upload PDF for chatting')
+  //   }
+
+  //   const targetDocId = activeDocumentId;
+  //   const Token = localStorage.getItem("token");
+  //   const userMessage = {
+  //     id: crypto.randomUUID ? crypto.randomUUID() : `user-${Date.now()}`,
+  //     role: "user",
+  //     text,
+  //   };
+
+  //   setMessages((prev) => [...prev, userMessage]);
+  //   setIsTyping(true);
+
+  //   try {
+  //     const res = await apiFetch(`chat/${targetDocId}/stream`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${Token}`,
+  //       },
+  //       body: JSON.stringify({ documentId: targetDocId, question: text }),
+  //     });
+
+  //     if (!res.ok) throw new Error("Server error response");
+  //     const data = await res.json();
+
+  //     // DISCARD incoming data if user switched documents while waiting
+  //     if (currentDocRef.current !== targetDocId) return;
+
+  //     setMessages((prev) => [
+  //       ...prev,
+  //       {
+  //         id: crypto.randomUUID ? crypto.randomUUID() : `bot-${Date.now()}`,
+  //         role: "assistant",
+  //         text: data.answer,
+  //         sources: data.sources || [],
+  //       },
+  //     ]);
+  //   } catch (err) {
+  //     if (currentDocRef.current !== targetDocId) return;
+
+  //     setMessages((prev) => [
+  //       ...prev,
+  //       {
+  //         id: crypto.randomUUID ? crypto.randomUUID() : `err-${Date.now()}`,
+  //         role: "assistant",
+  //         text: "Sorry, I couldn't reach the server. Please try again.",
+  //         sources: [],
+  //       },
+  //     ]);
+  //   } finally {
+  //     // Only lower flag if we are still looking at the original document thread
+  //     if (currentDocRef.current === targetDocId) {
+  //       setIsTyping(false);
+  //     }
+  //   }
+  // }
+
   async function handleSend(text) {
-    if (!text.trim()) return; // Prevent sending blank messages
+  if (!text.trim() || !activeDocumentId) return;
 
-    if(!activeDocument){
-     return alert('Please upload PDF for chatting')
-    }
+  const targetDocId = activeDocumentId;
+  const botId = crypto.randomUUID();
 
-    const targetDocId = activeDocumentId;
-    const Token = localStorage.getItem("token");
-    const userMessage = {
-      id: crypto.randomUUID ? crypto.randomUUID() : `user-${Date.now()}`,
-      role: "user",
-      text,
-    };
+  setMessages((prev) => [
+    ...prev,
+    { id: crypto.randomUUID(), role: "user", text },
+    { id: botId, role: "assistant", text: "", sources: [] },
+  ]);
+  setIsTyping(true);
 
-    setMessages((prev) => [...prev, userMessage]);
-    setIsTyping(true);
+  try {
+    const res = await apiFetch(`chat/${targetDocId}/stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: text }),
+    });
+    if (!res) return;
+    if (!res.ok) throw new Error("Server error response");
 
-    try {
-      const res = await apiFetch(`chat/${targetDocId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Token}`,
-        },
-        body: JSON.stringify({ documentId: targetDocId, question: text }),
-      });
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
 
-      if (!res.ok) throw new Error("Server error response");
-      const data = await res.json();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-      // DISCARD incoming data if user switched documents while waiting
-      if (currentDocRef.current !== targetDocId) return;
+      buffer += decoder.decode(value, { stream: true });
+      const events = buffer.split("\n\n");
+      buffer = events.pop();
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID ? crypto.randomUUID() : `bot-${Date.now()}`,
-          role: "assistant",
-          text: data.answer,
-          sources: data.sources || [],
-        },
-      ]);
-    } catch (err) {
-      if (currentDocRef.current !== targetDocId) return;
+      for (const evt of events) {
+        if (!evt.startsWith("data: ")) continue;
+        const payload = JSON.parse(evt.slice(6));
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID ? crypto.randomUUID() : `err-${Date.now()}`,
-          role: "assistant",
-          text: "Sorry, I couldn't reach the server. Please try again.",
-          sources: [],
-        },
-      ]);
-    } finally {
-      // Only lower flag if we are still looking at the original document thread
-      if (currentDocRef.current === targetDocId) {
-        setIsTyping(false);
+        if (currentDocRef.current !== targetDocId) return;
+
+        if (payload.token) {
+          setIsTyping(false);
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === botId ? { ...m, text: m.text + payload.token } : m,
+            ),
+          );
+        }
+        if (payload.done) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === botId ? { ...m, sources: payload.sources || [] } : m,
+            ),
+          );
+        }
+        if (payload.error) throw new Error(payload.error);
       }
     }
+  } catch (err) {
+    if (currentDocRef.current !== targetDocId) return;
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === botId
+          ? { ...m, text: m.text || "Sorry, something went wrong. Please try again." }
+          : m,
+      ),
+    );
+  } finally {
+    if (currentDocRef.current === targetDocId) setIsTyping(false);
   }
+}
 
   return (
     <div className="flex h-screen bg-[var(--paper)]">
