@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, act } from "react";
+import { useState, useRef, useEffect } from "react";
 import Sidebar from "../components/chat/sidebar";
 import ChatNavbar from "../components/chat/chatnav";
 import ChatWindow from "../components/chat/chatwindow";
