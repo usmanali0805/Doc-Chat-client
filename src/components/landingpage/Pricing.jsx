@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { apiFetch } from "../../utils/apiFetch";
 
 const freeFeatures = [
   "5 documents",
@@ -15,7 +17,40 @@ const proFeatures = [
   "Chat history across devices",
 ];
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+
 export default function Pricing() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+   async function startCheckout() {
+    // login nahi hai to pehle login karwao
+    if (!localStorage.getItem("token")) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setError("");
+      setLoading(true);
+
+      const res = await apiFetch("payments/create-checkout-session", {
+        method: "POST",
+      });
+      if (!res) return;
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Unable to start checkout");
+
+      window.location.assign(data.url);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  }
+
   return (
     <section id="pricing" className="max-w-6xl mx-auto px-6 py-24">
       <div className="text-center max-w-xl mx-auto mb-14">
@@ -62,7 +97,7 @@ export default function Pricing() {
               </li>
             ))}
           </ul>
-          <a href="#" className="btn-primary block text-center text-sm font-medium px-6 py-3 rounded-full">
+          <a onClick={startCheckout} href="#" className="btn-primary block text-center text-sm font-medium px-6 py-3 rounded-full">
             Start free trial
           </a>
         </div>
