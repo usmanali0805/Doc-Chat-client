@@ -17,8 +17,6 @@ const proFeatures = [
   "Chat history across devices",
 ];
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
 
 export default function Pricing() {
   const navigate = useNavigate();

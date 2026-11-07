@@ -9,9 +9,7 @@ import Pricing from "../components/landingpage/Pricing";
 import FAQ from "../components/landingpage/FAQ";
 import FinalCTA from "../components/landingpage/FinalCTA";
 import Footer from "../components/landingpage/Footer";
-import { useState } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
  
 
 export default function LandingPage() {
